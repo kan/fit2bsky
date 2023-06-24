@@ -94,6 +94,7 @@ func (f *Fitbit) loadTokens(refresh bool) (string, error) {
 		}
 		return "", errors.WithStack(err)
 	}
+	defer file.Close()
 
 	var tokenResponse TokenResponse
 	err = json.NewDecoder(file).Decode(&tokenResponse)

@@ -8,6 +8,7 @@ import (
 
 	"github.com/kan/fit2bsky/bluesky"
 	"github.com/kan/fit2bsky/fitbit"
+	"github.com/kan/fit2bsky/sheet"
 	"github.com/kelseyhightower/envconfig"
 	"github.com/pkg/errors"
 	"github.com/urfave/cli/v2"
@@ -19,6 +20,8 @@ type Config struct {
 	BskyHost     string `split_words:"true" default:"https://bsky.social"`
 	BskyHandle   string `split_words:"true"`
 	BskyPassword string `split_words:"true"`
+	SheetID      string `split_words:"true"`
+	SheetName    string `split_words:"true"`
 }
 
 func main() {
@@ -38,6 +41,15 @@ func main() {
 				Aliases:     []string{"d"},
 				Value:       "",
 				DefaultText: "today",
+			},
+			&cli.BoolFlag{
+				Name:    "sheet",
+				Aliases: []string{"s"},
+				Usage:   "Write the weight in google spreadsheet",
+			},
+			&cli.StringFlag{
+				Name:  "cell",
+				Usage: `Specify the cell in which to write the weight (e.g., "A1")`,
 			},
 			&cli.BoolFlag{
 				Name:  "dry-run",
@@ -61,6 +73,15 @@ func main() {
 
 			w := result.Weights[0]
 			text := fmt.Sprintf("今日の体重: %4.1fkg (BMI: %4.2f ) 体脂肪率: %4.2f%% via Fitbit\n", w.Weight, w.BMI, w.Fat)
+
+			if ctx.Bool("sheet") {
+				cell := fmt.Sprintf("%s!%s", c.SheetName, ctx.String("cell"))
+				log.Printf("%s, %s", c.SheetID, cell)
+
+				if err := sheet.WriteCell(c.SheetID, cell, w.Weight); err != nil {
+					return err
+				}
+			}
 
 			if ctx.Bool("dry-run") {
 				fmt.Println(text)
