@@ -76,7 +76,6 @@ func main() {
 
 			if ctx.Bool("sheet") {
 				cell := fmt.Sprintf("%s!%s", c.SheetName, ctx.String("cell"))
-				log.Printf("%s, %s", c.SheetID, cell)
 
 				if err := sheet.WriteCell(c.SheetID, cell, w.Weight); err != nil {
 					return err
